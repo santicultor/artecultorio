@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Calculadora de Alquiler Artecultorio</title>
+  <style>
+    body { font-family: Helvetica, sans-serif; max-width: 800px; margin: 40px auto; color: #2e2545; background: #faf9f9; }
+    header { text-align: center; margin-bottom: 30px; }
+    header img { max-height: 60px; }
+    h1 { font-size: 2.2em; margin: 20px 0; }
+    label { display: block; margin-top: 20px; font-weight: bold; }
+    .options { display: flex; gap: 15px; margin-top: 10px; flex-wrap: wrap; }
+    .option-btn { flex: 1 1 30%; padding: 15px; border: 2px solid #d6d6e7; border-radius: 12px; text-align: center; cursor: pointer; transition: 0.3s; background: #fff; }
+    .option-btn strong { display: block; font-weight: bold; margin-bottom: 5px; }
+    .option-btn.selected { border-color: #5d4b8c; background: #ede9f7; }
+    .option-desc { font-size: 0.85em; color: #555; }
+    select, input { width: 100%; padding: 15px; margin-top: 5px; border: 2px solid #d6d6e7; border-radius: 12px; font-size: 1em; }
+    #info { background: #f5f3f7; padding: 20px; margin-top: 20px; border-radius: 12px; line-height: 1.5; }
+    #resultado, #porHora, #sugerencia { margin-top: 20px; font-size: 1.1em; font-weight: bold; color: #3b3054; }
+    button { margin-top: 30px; padding: 14px 30px; border: none; background: #5d4b8c; color: #fff; border-radius: 30px; cursor: pointer; font-size: 1em; transition: 0.3s; }
+    button:hover { background: #44316c; }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="LogoHome.png" alt="Artecultorio logo">
+    <h1>Calculadora de Alquiler</h1>
+  </header>
+
+  <div id="info">
+    <p>🗓️ <strong>Horario General:</strong> Lunes a Viernes de 7 AM a 6 PM</p>
+    <p>🌙 <strong>Horario Prime:</strong> Lunes a Viernes de 6 PM a 9 PM, Sábados, Domingos y Festivos</p>
+  </div>
+
+  <label>Tipo de Uso</label>
+  <div class="options" id="tipoUso">
+    <div class="option-btn selected" data-value="hora"><strong>Por Hora</strong><div class="option-desc">Flexible, paga solo lo que usas (mín. 2h)</div></div>
+    <div class="option-btn" data-value="paquete"><strong>Paquete</strong><div class="option-desc">Bloques fijos para eventos específicos</div></div>
+    <div class="option-btn" data-value="membresia"><strong>Membresía</strong><div class="option-desc">Uso recurrente a mejor tarifa</div></div>
+  </div>
+
+  <label>Horario</label>
+  <div class="options" id="horario">
+    <div class="option-btn selected" data-value="general"><strong>General</strong><div class="option-desc">L-V 7 AM a 6 PM</div></div>
+    <div class="option-btn" data-value="prime"><strong>Prime</strong><div class="option-desc">L-V 6 PM-9 PM, Sáb, Dom, Fest.</div></div>
+  </div>
+
+  <div id="bloqueHoras">
+    <label>Duración (horas)
+      <input type="number" id="horas" min="2" value="2">
+    </label>
+  </div>
+
+  <div id="opcionesPaquete" style="display:none;">
+    <label>Selecciona Paquete
+      <select id="paquete">
+        <option value="corto"><strong>Bloque Corto (4h)</strong></option>
+        <option value="largo"><strong>Bloque Largo (8h)</strong></option>
+        <option value="completo"><strong>Día Completo (10h)</strong></option>
+      </select>
+    </label>
+  </div>
+
+  <div id="opcionesMembresia" style="display:none;">
+    <label>Selecciona Membresía
+      <select id="membresia">
+        <option value="regular"><strong>Pase Regular (8h)</strong></option>
+        <option value="frecuente"><strong>Pase Frecuente (16h)</strong></option>
+        <option value="extendido"><strong>Pase Extendido (32h)</strong></option>
+      </select>
+    </label>
+  </div>
+
+  <div id="resultado">💡 Total estimado: $0 COP</div>
+  <div id="porHora"></div>
+  <div id="sugerencia"></div>
+
+  <button onclick="calcular()">Calcular</button>
+
+  <script>
+    const tarifas = {
+      hora: { general: 60000, prime: 90000 },
+      paquete: {
+        corto: { general: 220000, prime: 300000, horas: 4 },
+        largo: { general: 400000, prime: 540000, horas: 8 },
+        completo: { general: 480000, prime: 650000, horas: 10 }
+      },
+      membresia: {
+        regular: { general: 400000, prime: 540000, horas: 8 },
+        frecuente: { general: 720000, prime: 960000, horas: 16 },
+        extendido: { general: 1350000, prime: 1750000, horas: 32 }
+      }
+    };
+
+    document.querySelectorAll('#tipoUso .option-btn').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('#tipoUso .option-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        const tipo = btn.dataset.value;
+        document.getElementById('bloqueHoras').style.display = tipo === 'hora' ? 'block' : 'none';
+        document.getElementById('opcionesPaquete').style.display = tipo === 'paquete' ? 'block' : 'none';
+        document.getElementById('opcionesMembresia').style.display = tipo === 'membresia' ? 'block' : 'none';
+        document.getElementById('resultado').innerText = `💡 Total estimado: $0 COP`;
+        document.getElementById('porHora').innerText = '';
+        document.getElementById('sugerencia').innerText = '';
+      }
+    });
+
+    document.querySelectorAll('#horario .option-btn').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('#horario .option-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+      }
+    });
+
+    function calcular() {
+      const tipo = document.querySelector('#tipoUso .selected').dataset.value;
+      const horario = document.querySelector('#horario .selected').dataset.value;
+      let total = 0;
+      let horas = 0;
+
+      if (tipo === 'hora') {
+        horas = parseFloat(document.getElementById('horas').value);
+        if (horas < 2) horas = 2;
+        total = horas * tarifas.hora[horario];
+
+        let sugerencia = '';
+        if (horas >= 4 && horas < 8) {
+          sugerencia = '👉 Tip: Para 4h, considera el Bloque Corto.';
+        } else if (horas >= 8 && horas < 10) {
+          sugerencia = '👉 Tip: Para 8h, considera el Bloque Largo.';
+        } else if (horas >= 10) {
+          sugerencia = '👉 Tip: Para 10h+, un Día Completo puede ser mejor.';
+        }
+        document.getElementById('sugerencia').innerText = sugerencia;
+
+      } else if (tipo === 'paquete') {
+        const paquete = document.getElementById('paquete').value;
+        total = tarifas.paquete[paquete][horario];
+        horas = tarifas.paquete[paquete].horas;
+      } else if (tipo === 'membresia') {
+        const membresia = document.getElementById('membresia').value;
+        total = tarifas.membresia[membresia][horario];
+        horas = tarifas.membresia[membresia].horas;
+      }
+
+      const valorHora = total / horas;
+      document.getElementById('resultado').innerText = `💡 Total estimado: $${total.toLocaleString('es-CO')} COP`;
+      document.getElementById('porHora').innerText = `⏰ Valor por hora: $${Math.round(valorHora).toLocaleString('es-CO')} COP`;
+    }
+  </script>
+</body>
+</html>
